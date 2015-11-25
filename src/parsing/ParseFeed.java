@@ -2,6 +2,7 @@ package parsing;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -139,7 +140,7 @@ public class ParseFeed {
 	 */
 	public static List<PointFeature> parseAirports(PApplet p, String fileName) {
 		List<PointFeature> features = new ArrayList<PointFeature>();
-
+		
 		String[] rows = p.loadStrings(fileName);
 		for (String row : rows) {
 			
@@ -148,7 +149,7 @@ public class ParseFeed {
 			
 			// split row by commas not in quotations
 			String[] columns = row.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-			
+			//System.out.println(Arrays.toString(columns));
 			// get location and create feature
 			//System.out.println(columns[6]);
 			float lat = Float.parseFloat(columns[6]);
@@ -161,25 +162,26 @@ public class ParseFeed {
 			point.setId(columns[0]);
 			
 			// get other fields from csv
-			point.addProperty("name", columns[1]);
-			point.putProperty("city", columns[2]);
-			point.putProperty("country", columns[3]);
+			point.addProperty("name", columns[1].replaceAll("\"", ""));
+			point.putProperty("city", columns[2].replaceAll("\"", ""));
+			point.putProperty("country", columns[3].replaceAll("\"", ""));
+			
 			
 			// pretty sure IATA/FAA is used in routes.dat
 			// get airport IATA/FAA code
-			if(!columns[4].equals("")) {
-				point.putProperty("code", columns[4]);
+			if(columns[4].matches("([\"])[A-Z]+([\"]$)")) {
+				point.putProperty("code", columns[4].replaceAll("\"", ""));
 			}
 			// get airport ICAO code if no IATA
-			else if(!columns[5].equals("")) {
-				point.putProperty("code", columns[5]);
+			else if(columns[5].matches("([\"])[A-Z]+([\"]$)")) {
+				point.putProperty("code", columns[5].replaceAll("\"", ""));
 			}
 			
 			point.putProperty("altitude", columns[8 + i]);
-			
+			// System.out.println(point.getProperty("code"));
 			features.add(point);
 		}
-
+		
 		return features;
 		
 	}

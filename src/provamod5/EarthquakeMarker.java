@@ -1,16 +1,15 @@
-package module5;
+package provamod5;
 
 import java.util.*;
 
 import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.marker.Marker;
-import processing.core.PConstants;
 import processing.core.PGraphics;
 
 /** Implements a visual marker for earthquakes on an earthquake map
  * 
  * @author UC San Diego Intermediate Software Development MOOC team
- * @author Albert Ribas
+ * @author Your name here
  *
  */
 public abstract class EarthquakeMarker extends CommonMarker
@@ -39,7 +38,7 @@ public abstract class EarthquakeMarker extends CommonMarker
 	/** Greater than or equal to this threshold is a deep depth */
 	public static final float THRESHOLD_DEEP = 300;
 
-	// Threatened Cities
+	// threatenedCityMarkers
 	List<Marker> threatenedCityMarkers;
 	
 	// ADD constants for colors if you want
@@ -100,40 +99,54 @@ public abstract class EarthquakeMarker extends CommonMarker
 	@Override
 	public void showTitle(PGraphics pg, float x, float y)
 	{
+		
+		
+		// Displaying the title of the Earthquake
+		// When it's hovered over (or in other words selected)
+		
+		// color of the popup
+		int popupColor = pg.color(253, 237, 44);
+		int black = pg.color(0, 0, 0);
+		
 		String title = getTitle();
+		int fontSize = 12;
 		
-		pg.pushStyle();
+		// popup box
+		pg.fill(popupColor);
+		pg.rect(x, (y + getRadius() * 2) - (fontSize), pg.textWidth(title), fontSize + 2);
 		
-		// Box to get the text more visible
-		pg.fill(255, 250, 240);
-		pg.rectMode(PConstants.CORNER);
-		pg.rect(x, y + 15, pg.textWidth(title) + 6, 18, 5);
-		
-		// text
-		pg.fill(0);
-		pg.textSize(12);
-		pg.textAlign(PConstants.LEFT, PConstants.TOP);
-		pg.text(title, x + 3, y + 18);
-		
-		pg.popStyle();		
+		// drawing the title of the earthquake
+		pg.fill(black);
+		pg.textSize(fontSize);
+		pg.text(title, x, y + getRadius() * 2);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see module5.CommonMarker#showThreat(java.util.List)
+	 * Hides all other earthquakeMarkers
+	 * Measures the distance between the Earthquake and each cityMarker
+	 * Checks all the city for threat from the earthquake
+	 * Hides if it's threatened
+	 * Unhides if it's not threatened
+	 */
 	@Override
- 	public void showThreat(List<Marker> quakeMarkers, List<Marker> cityMarkers){
-		// hiding all other quakeMarkers
+	public void showThreat(List<Marker> quakeMarkers, List<Marker> cityMarkers){
 		hideOtherQuakes(quakeMarkers);
 		showAndAddThreatenedCities(cityMarkers);
 	}
 	
+	// hides all other quakeMarkers
 	private void hideOtherQuakes(List<Marker> quakeMarkers){
- 		for (Marker marker: quakeMarkers){
- 			if (marker != this){
- 				marker.setHidden(true);
- 			}
- 		}
+		for (Marker marker: quakeMarkers){
+			if (marker != this){
+				marker.setHidden(true);
+			}
+		}
 	}
 	
-	/**
+	
+	/*
 	 * hiding the cities which are not threatened
 	 * if the city is threatened
 	 * adds the threatened city
@@ -143,35 +156,31 @@ public abstract class EarthquakeMarker extends CommonMarker
 			threatenedCityMarkers = new ArrayList<Marker>();	
 		}
 		
-		// Threat circle in km
+		// threat circle in km
 		double threat = threatCircle();
- 		
-		// Looping over all the cities 
-		// Hiding the cities which are safe
+		
 		// Looping over all the cityMarker
 		// Adding the cities which are threatened by the earthquake
- 		for (Marker marker: cityMarkers){
- 			if ((marker).getDistanceTo(this.location) > threat){
- 				marker.setHidden(true);
- 			}
- 			else {
-				marker.setHidden(false);
+		for (Marker marker: cityMarkers){
+			if ((marker).getDistanceTo(this.location) > threat){
+				marker.setHidden(true);
+			}
+			else {
 				// Not hiding marker means threatenedCities are already displayed
 				
 				addThreatenedCity(marker);
- 			}
- 		}
- 	}
-	
-	private void addThreatenedCity(Marker marker) {
-		System.out.println(marker.getProperties().toString());
-		if (threatenedCityMarkers.indexOf(marker) == -1) {
-			threatenedCityMarkers.add(marker);	
+			}
 		}
-		
 	}
-
-
+	
+	// Adds the the threatened City if not in the list already
+	private void addThreatenedCity(Marker cityMarker){
+		System.out.println(cityMarker.getProperties().toString());
+		if (threatenedCityMarkers.indexOf(cityMarker) == -1) {
+			threatenedCityMarkers.add(cityMarker);	
+		}
+	}
+	
 	/**
 	 * Return the "threat circle" radius, or distance up to 
 	 * which this earthquake can affect things, for this earthquake.   

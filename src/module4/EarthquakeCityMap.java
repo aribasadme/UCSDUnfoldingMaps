@@ -15,6 +15,7 @@ import de.fhpotsdam.unfolding.marker.SimplePointMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.utils.MapUtils;
+import module5.EarthquakeMarker;
 import parsing.ParseFeed;
 import processing.core.PApplet;
 
@@ -183,11 +184,13 @@ public class EarthquakeCityMap extends PApplet {
 	private boolean isLand(PointFeature earthquake) {
 		
 		// IMPLEMENT THIS: loop over all countries to check if location is in any of them
-		// TODO: Implement this method using the helper method isInCountry
+		// Implement this method using the helper method isInCountry
 		for (Marker country : countryMarkers){
-			if(isInCountry(earthquake, country))
+			if (isInCountry(earthquake, country))
 				return true;
 		}
+		
+		// not inside any country
 		return false;
 	}
 	
@@ -199,34 +202,25 @@ public class EarthquakeCityMap extends PApplet {
 	// And LandQuakeMarkers have a "country" property set.
 	private void printQuakes() 
 	{
-		// TODO: Implement this method
-		int oceanQuake = 0;
-		int totalOceanQuakes = 0;
-		
-		List<String> countryOfQuake = new ArrayList<String>();
-		
+		int totalOceanQuakes = quakeMarkers.size();		
 		for (Marker country : countryMarkers){
 			String countryName = country.getStringProperty("name");
+			int numQuakes = 0;
 			for (Marker quake : quakeMarkers){
 				// Earthquake on land
-				if (countryName == quake.getStringProperty("country")){
-					// Add the country to a list every time that there's
-					// an earthquake on that country
-					countryOfQuake.add(countryName);
-				}
-				// Earthquake on the ocean
-				else if (quake.getStringProperty("country") == null){
-					oceanQuake++;
-				}
+				EarthquakeMarker eqMarker = (EarthquakeMarker)quake;
+				if (eqMarker.isOnLand()){
+					// check country name
+					if (countryName.equals(eqMarker.getStringProperty("country"))) {
+						numQuakes++;
+					}
+				}	
 			}
 			// Print current country if it has earthquakes
-			if (countryOfQuake.size() > 0){
-				System.out.println(countryName + ": " + countryOfQuake.size());
+			if (numQuakes > 0){
+				totalOceanQuakes -= numQuakes; 
+				System.out.println(countryName + ": " + numQuakes);
 			}
-			// Clear the list for the next country
-			countryOfQuake.clear();
-			totalOceanQuakes = oceanQuake;
-			oceanQuake = 0;
 		}
 		System.out.println("OCEAN QUAKES: " + totalOceanQuakes);
 	}

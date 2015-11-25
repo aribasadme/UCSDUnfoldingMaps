@@ -1,7 +1,8 @@
-package module5;
+package provamod5;
 
-import java.util.List;
+import java.util.*;
 
+import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.geo.Location;
 import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.SimplePointMarker;
@@ -26,6 +27,11 @@ public abstract class CommonMarker extends SimplePointMarker {
 		super(location, properties);
 	}
 	
+	// Adding an additional constructor for getting the map too
+//	public CommonMarker(Location location, UnfoldingMap map){
+//		super(location, map);
+//	}
+	
 	// Getter method for clicked field
 	public boolean getClicked() {
 		return clicked;
@@ -47,6 +53,13 @@ public abstract class CommonMarker extends SimplePointMarker {
 			if (selected) {
 				showTitle(pg, x, y);  // You will implement this in the subclasses
 			}
+			
+			// Important note
+			// showThreat() will not be implemented here
+			// REASON 1: You don't have to draw it
+			// REASON 2: You have to setHidden one time to true and false
+			// REASON 3: You can't get the List<Marker> necessary for calculating the threat
+			//			 for each marker
 		}
 	}
 	public abstract void drawMarker(PGraphics pg, float x, float y);

@@ -87,7 +87,6 @@ public class EarthquakeCityMap extends PApplet {
 	    // an int that represents the color yellow.  
 	    int yellow = color(255, 255, 0);
 	    
-	    //TODO: Add code here as appropriate
 	    if (earthquakes.size() > 0){
 	    	for (PointFeature earthquake : earthquakes){
 	    		SimplePointMarker marker = createMarker(earthquake);
@@ -100,7 +99,6 @@ public class EarthquakeCityMap extends PApplet {
 		
 	// A suggested helper method that takes in an earthquake feature and 
 	// returns a SimplePointMarker for that earthquake
-	// TODO: Implement this method and call it from setUp, if it helps
 	private SimplePointMarker createMarker(PointFeature feature)
 	{
 		// finish implementing and use this method, if it helps.
@@ -136,7 +134,6 @@ public class EarthquakeCityMap extends PApplet {
 
 
 	// helper method to draw key in GUI
-	// TODO: Implement this method to draw the key
 	private void addKey() 
 	{	
 		// Remember you can use Processing's graphics methods here

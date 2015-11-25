@@ -1,8 +1,6 @@
-package module6;
+package provamod5;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
@@ -22,13 +20,13 @@ import processing.core.PApplet;
 /** EarthquakeCityMap
  * An application with an interactive map displaying earthquake data.
  * Author: UC San Diego Intermediate Software Development MOOC team
- * @author Your name here
+ * @author Hannan Ali
  * Date: July 17, 2015
  * */
 public class EarthquakeCityMap extends PApplet {
 	
 	// We will use member variables, instead of local variables, to store the data
-	// that the setUp and draw methods will need to access (as well as other methods)
+	// that the setup and draw methods will need to access (as well as other methods)
 	// You will use many of these variables, but the only one you should need to add
 	// code to modify is countryQuakes, where you will store the number of earthquakes
 	// per country.
@@ -42,10 +40,8 @@ public class EarthquakeCityMap extends PApplet {
 	/** This is where to find the local tiles, for working without an Internet connection */
 	public static String mbTilesString = "blankLight-1-3.mbtiles";
 	
-	
-
 	//feed with magnitude 2.5+ Earthquakes
-	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.atom";
+	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
 	
 	// The files containing city names and info and country names and info
 	private String cityFile = "city-data.json";
@@ -80,14 +76,6 @@ public class EarthquakeCityMap extends PApplet {
 		}
 		MapUtils.createDefaultEventDispatcher(this, map);
 		
-		// FOR TESTING: Set earthquakesURL to be one of the testing files by uncommenting
-		// one of the lines below.  This will work whether you are online or offline
-		//earthquakesURL = "test1.atom";
-		//earthquakesURL = "test2.atom";
-		
-		// Uncomment this line to take the quiz
-		//earthquakesURL = "quiz2.atom";
-		
 		
 		// (2) Reading in earthquake data and geometric properties
 	    //     STEP 1: load country features and markers
@@ -112,21 +100,18 @@ public class EarthquakeCityMap extends PApplet {
 		  }
 		  // OceanQuakes
 		  else {
-		    quakeMarkers.add(new OceanQuakeMarker(feature));
+		    quakeMarkers.add(new OceanQuakeMarker(feature, map));
 		  }
 	    }
 
 	    // could be used for debugging
 	    printQuakes();
-	    
-	    sortAndPrint(5);
-	    
+	 		
 	    // (3) Add markers to map
 	    //     NOTE: Country markers are not added to the map.  They are used
 	    //           for their geometric properties
 	    map.addMarkers(quakeMarkers);
 	    map.addMarkers(cityMarkers);
-	    
 	    
 	}  // End setup
 	
@@ -136,19 +121,6 @@ public class EarthquakeCityMap extends PApplet {
 		map.draw();
 		addKey();
 		
-	}
-	
-	
-	private void sortAndPrint(int numToPrint)
-	{
-		Object[] quakes = quakeMarkers.toArray();
-		Arrays.sort(quakes);
-		System.out.println(quakes.length);
-	
-		for (int i = 0; i < numToPrint; i++){
-			if (i >= quakes.length) break;
-			System.out.print(quakes[quakes.length - 1 - i] + "\n");
-		}
 	}
 	
 	/** Event handler that gets called automatically when the 
@@ -165,26 +137,23 @@ public class EarthquakeCityMap extends PApplet {
 		}
 		selectMarkerIfHover(quakeMarkers);
 		selectMarkerIfHover(cityMarkers);
-		//loop();
 	}
 	
-	// If there is a marker selected 
+	// If there is a marker under the cursor, and lastSelected is null 
+	// set the lastSelected to be the first marker found under the cursor
+	// Make sure you do not select two markers.
+	// 
 	private void selectMarkerIfHover(List<Marker> markers)
 	{
-		// Abort if there's already a marker selected
-		if (lastSelected != null) {
-			return;
-		}
-		
-		for (Marker m : markers) 
-		{
-			CommonMarker marker = (CommonMarker)m;
-			if (marker.isInside(map,  mouseX, mouseY)) {
-				lastSelected = marker;
-				marker.setSelected(true);
-				return;
+		// Select the marker and call it's setSelected() method with first argument as true 
+		for (Marker marker: markers){
+			if(marker.isInside(map, mouseX, mouseY)){
+				lastSelected = (CommonMarker) marker;
+				lastSelected.setSelected(true);
+				break;
 			}
 		}
+		
 	}
 	
 	/** The event handler for mouse clicks
@@ -195,72 +164,49 @@ public class EarthquakeCityMap extends PApplet {
 	@Override
 	public void mouseClicked()
 	{
+		// Hint: You probably want a helper method or two to keep this code
+		// from getting too long/disorganized
+
+		// instantly saving the x and y coordinates of the click
+		float x = mouseX;
+		float y = mouseY;
+		
+		// lastClicked tells us if it was clicked before
 		if (lastClicked != null) {
-			unhideMarkers();
+			lastClicked.setClicked(false);
 			lastClicked = null;
+			unhideMarkers();
 		}
-		else if (lastClicked == null) 
-		{
-			checkEarthquakesForClick();
-			if (lastClicked == null) {
-				checkCitiesForClick();
-			}
+		
+		if (clickMarkerIfClicked(quakeMarkers, x, y) 
+		||	clickMarkerIfClicked(cityMarkers, x, y)){
+			hideSafeMarkers();
 		}
+		
+		
+		
 	}
 	
-	// Helper method that will check if a city marker was clicked on
-	// and respond appropriately
-	private void checkCitiesForClick()
-	{
-		if (lastClicked != null) return;
-		// Loop over the earthquake markers to see if one of them is selected
-		for (Marker marker : cityMarkers) {
-			if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY)) {
-				lastClicked = (CommonMarker)marker;
-				// Hide all the other earthquakes and hide
-				for (Marker mhide : cityMarkers) {
-					if (mhide != lastClicked) {
-						mhide.setHidden(true);
-					}
-				}
-				for (Marker mhide : quakeMarkers) {
-					EarthquakeMarker quakeMarker = (EarthquakeMarker)mhide;
-					if (quakeMarker.getDistanceTo(marker.getLocation()) 
-							> quakeMarker.threatCircle()) {
-						quakeMarker.setHidden(true);
-					}
-				}
-				return;
-			}
-		}		
+	private void hideSafeMarkers(){
+		lastClicked.showThreat(quakeMarkers, cityMarkers);
 	}
 	
-	// Helper method that will check if an earthquake marker was clicked on
-	// and respond appropriately
-	private void checkEarthquakesForClick()
-	{
-		if (lastClicked != null) return;
-		// Loop over the earthquake markers to see if one of them is selected
-		for (Marker m : quakeMarkers) {
-			EarthquakeMarker marker = (EarthquakeMarker)m;
-			if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY)) {
-				lastClicked = marker;
-				// Hide all the other earthquakes and hide
-				for (Marker mhide : quakeMarkers) {
-					if (mhide != lastClicked) {
-						mhide.setHidden(true);
-					}
-				}
-				for (Marker mhide : cityMarkers) {
-					if (mhide.getDistanceTo(marker.getLocation()) 
-							> marker.threatCircle()) {
-						mhide.setHidden(true);
-					}
-				}
-				return;
+	
+	
+	// If there was a marker underneath the mouse when it was clicked 
+	// it's clicked property is set to true
+	// returns true if the marker was found underneath it
+	private boolean clickMarkerIfClicked(List<Marker> markers, float x, float y){
+		for (Marker marker: markers){
+			if (marker.isInside(map, x, y)){
+				lastClicked = (CommonMarker) marker;
+				lastClicked.setClicked(true);
+				return true;
 			}
 		}
+		return false;
 	}
+	
 	
 	// loop over and unhide all markers
 	private void unhideMarkers() {
@@ -333,8 +279,7 @@ public class EarthquakeCityMap extends PApplet {
 		strokeWeight(2);
 		line(centerx-8, centery-8, centerx+8, centery+8);
 		line(centerx-8, centery+8, centerx+8, centery-8);
-		
-		
+			
 	}
 
 	
@@ -342,7 +287,7 @@ public class EarthquakeCityMap extends PApplet {
 	// Checks whether this quake occurred on land.  If it did, it sets the 
 	// "country" property of its PointFeature to the country where it occurred
 	// and returns true.  Notice that the helper method isInCountry will
-	// set this "country" property already.  Otherwise it returns false.
+	// set this "country" property already.  Otherwise it returns false.	
 	private boolean isLand(PointFeature earthquake) {
 		
 		// IMPLEMENT THIS: loop over all countries to check if location is in any of them
@@ -358,11 +303,6 @@ public class EarthquakeCityMap extends PApplet {
 	}
 	
 	// prints countries with number of earthquakes
-	// You will want to loop through the country markers or country features
-	// (either will work) and then for each country, loop through
-	// the quakes to count how many occurred in that country.
-	// Recall that the country markers have a "name" property, 
-	// And LandQuakeMarkers have a "country" property set.
 	private void printQuakes() {
 		int totalWaterQuakes = quakeMarkers.size();
 		for (Marker country : countryMarkers) {
@@ -383,6 +323,7 @@ public class EarthquakeCityMap extends PApplet {
 			}
 		}
 		System.out.println("OCEAN QUAKES: " + totalWaterQuakes);
+		
 	}
 	
 	
